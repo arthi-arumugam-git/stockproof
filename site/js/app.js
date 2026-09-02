@@ -2,16 +2,16 @@
  * stockproof — wiring.
  *
  * Everything happens in this tab. The only network request the page ever makes is a licence
- * check against Gumroad, and that carries a licence key and nothing else. No merchant data is
+ * check against the payment provider, and that carries a licence key and nothing else. No merchant data is
  * ever sent anywhere, which is the whole reason this is a page and not an app with Admin API
  * access to someone's store.
  */
 
-import { parseCsv, toCsv } from "./csv.js?v=0.1.6";
-import { aggregateLocations, attachProducts, detect, readInventory, readOrders, readProducts } from "./shopify.js?v=0.1.6";
-import { DEFAULTS, groupByVendor, suggest, variance, writebackRecords } from "./forecast.js?v=0.1.6";
-import { toSvg, encodable } from "./barcode.js?v=0.1.6";
-import * as licence from "./licence.js?v=0.1.6";
+import { parseCsv, toCsv } from "./csv.js?v=0.1.7";
+import { aggregateLocations, attachProducts, detect, readInventory, readOrders, readProducts } from "./shopify.js?v=0.1.7";
+import { DEFAULTS, groupByVendor, suggest, variance, writebackRecords } from "./forecast.js?v=0.1.7";
+import { toSvg, encodable } from "./barcode.js?v=0.1.7";
+import * as licence from "./licence.js?v=0.1.7";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, attrs = {}, children = []) => {
