@@ -19,20 +19,23 @@ The Code 128 pattern table is verified structurally by the tests (107 patterns, 
 
 ---
 
-## 2. Create the Gumroad product (10 minutes)
+## 2. Create the Dodo Payments product (about 15 minutes)
 
-Same rail as billproof, so this is the second sale on infrastructure that already exists.
+Gumroad did not work, so both products sell through **Dodo Payments**. It is an Indian company, it is the merchant of record so EU and UK VAT is handled for you, and its FAQ says *"You can onboard as an individual and start receiving international payments without any hassle"*.
 
-1. In Gumroad, new product → **Digital product** (or **Membership** if selling monthly).
-   - Name: `stockproof licence`
-   - Price: the research says merchants name **$9.99–$50/month** as their ceiling, against Thrive/Shopventory at $59–$559. **$19/month, or $149 once**, sits where they said they would pay.
-2. Turn **ON** *Generate a unique licence key per sale*.
-3. Copy the **product ID** and the **short URL**.
-4. Give both to Claude. Two one-line changes go in: `PRODUCT_ID` in `site/js/licence.js`, and the Buy link in `renderLicence`. Until then the paid buttons say "· licence" and lead to a placeholder.
+Its licence endpoints are public, need no API key, and were verified working **from a browser** on 2026-09-02, which is why this page needs no server of its own.
 
-The licence code already handles refunds, disputes and cancelled subscriptions, and it keeps working offline for 30 days so a count in a stockroom with no signal is never blocked.
+1. In Dodo, **Entitlements** → **+** → **License Key**:
+   - **Activations limit**: `2` (the shop's back-office machine and a laptop).
+   - **Duration**: leave blank for a subscription; keys stay valid while the subscription is active and are revoked automatically when it ends.
+   - **Activation instructions**: `Paste the key into the Licence tab at arthi-arumugam-git.github.io/stockproof`
+   - **Prefix**: `STOCKPROOF-` — this matters. Validate takes only the key, so the prefix is what stops another Dodo merchant's key unlocking this tool. The code expects exactly this prefix.
+2. Create the product: `stockproof licence`. On price, the research is specific — merchants in the Stocky threads name **$9.99 to $50 a month** as their ceiling, against Thrive/Shopventory at **$59 to $559**. **$19/month** sits where they said they would pay. Attach the entitlement.
+3. Publish, then send Claude the **checkout URL**; it replaces `BUY_URL` in `site/js/app.js`, one line.
 
----
+### Test it once
+
+Buy your own licence, paste the key into the **Licence** tab, and check that Print and the CSV downloads unlock. Then click **Remove licence** and confirm they lock again.
 
 ## 3. Post where the stranded merchants actually are (30 minutes)
 

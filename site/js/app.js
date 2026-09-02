@@ -7,11 +7,11 @@
  * access to someone's store.
  */
 
-import { parseCsv, toCsv } from "./csv.js?v=0.1.5";
-import { aggregateLocations, attachProducts, detect, readInventory, readOrders, readProducts } from "./shopify.js?v=0.1.5";
-import { DEFAULTS, groupByVendor, suggest, variance, writebackRecords } from "./forecast.js?v=0.1.5";
-import { toSvg, encodable } from "./barcode.js?v=0.1.5";
-import * as licence from "./licence.js?v=0.1.5";
+import { parseCsv, toCsv } from "./csv.js?v=0.1.6";
+import { aggregateLocations, attachProducts, detect, readInventory, readOrders, readProducts } from "./shopify.js?v=0.1.6";
+import { DEFAULTS, groupByVendor, suggest, variance, writebackRecords } from "./forecast.js?v=0.1.6";
+import { toSvg, encodable } from "./barcode.js?v=0.1.6";
+import * as licence from "./licence.js?v=0.1.6";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, attrs = {}, children = []) => {
@@ -27,6 +27,9 @@ const el = (tag, attrs = {}, children = []) => {
   for (const c of [].concat(children)) if (c) n.append(c);
   return n;
 };
+
+/** Set once the Dodo product exists; until then the buy button points at the repo. */
+const BUY_URL = "https://github.com/arthi-arumugam-git/stockproof#licence";
 
 const state = {
   files: { inventory: null, orders: null, products: null },
@@ -575,10 +578,10 @@ function renderLicence(host) {
                 else msg.textContent = r.reason;
               },
             }),
-            el("a", { class: "btn", href: "https://gumroad.com/l/stockproof", target: "_blank", rel: "noopener", text: "Buy a licence" }),
+            el("a", { class: "btn", href: BUY_URL, target: "_blank", rel: "noopener", text: "Buy a licence" }),
           ]),
       msg,
-      el("p", { class: "note", html: "The key is checked with Gumroad once a day. If you are offline the last check stands for 30 days, so a count in a stockroom with no signal is never blocked." }),
+      el("p", { class: "note", text: "The key is checked once a day. If you are offline the last check stands for 30 days, so a count in a stockroom with no signal is never blocked. One licence covers a set number of devices; remove it here to free a slot before moving to another machine." }),
     ]),
   );
 }

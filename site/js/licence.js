@@ -1,30 +1,35 @@
 /**
- * Licence check against Gumroad.
+ * Licence check against Dodo Payments.
  *
- * Gumroad issues one licence key per sale and emails it to the buyer, so nothing of ours is
- * involved in delivery. Verified against the live endpoint on 2026-09-02:
- *   POST https://api.gumroad.com/v2/licenses/verify   product_id, license_key
- * needs no access token and answers
- *   {"success":false,"message":"That license does not exist for the provided product."}
+ * Dodo issues a licence key on payment and emails it to the buyer, revokes it automatically on
+ * refund, dispute or a cancelled subscription, and enforces an activation limit per key. Its
+ * activate, deactivate and validate endpoints are public: the docs say "The activate, deactivate,
+ * and validate license endpoints are public and do not require an API key. Call them directly from
+ * your client applications without exposing your API credentials." Verified 2026-09-02:
+ *   POST https://live.dodopayments.com/licenses/validate  {license_key}  ->  {"valid":false}
  * for an unknown key.
  *
- * The key is kept in localStorage and re-checked once a day. If the network is unavailable the
- * last good result stands for 30 days, so a merchant counting stock in a stockroom with no
- * signal is never locked out of a tool they have paid for.
+ * The key is kept in this browser and re-checked once a day. If the network is unavailable the
+ * last good result stands for 30 days, so counting stock in a stockroom with no signal is never
+ * blocked by a licence check.
  */
 
-const VERIFY_URL = "https://api.gumroad.com/v2/licenses/verify";
+const HOST = "https://live.dodopayments.com";
 const STORAGE_KEY = "stockproof.licence";
 const RECHECK_MS = 24 * 60 * 60 * 1000;
 const GRACE_MS = 30 * 24 * 60 * 60 * 1000;
 
-/** Set at build time by editing this line; empty means the paid features stay locked. */
-export const PRODUCT_ID = "";
-
-const KEY_SHAPE = /^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{8}-[0-9A-Fa-f]{8}-[0-9A-Fa-f]{8}$|^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$/;
+/**
+ * Dodo's validate endpoint takes only the key, so a key from any Dodo merchant would validate.
+ * Setting a licence-key prefix on the product in the Dodo dashboard and checking it here stops an
+ * unrelated key unlocking this tool. Empty means "accept any shape".
+ */
+export const KEY_PREFIX = "STOCKPROOF-";
 
 export function looksLikeKey(key) {
-  return KEY_SHAPE.test(String(key ?? "").trim());
+  const k = String(key ?? "").trim();
+  if (k.length < 8) return false;
+  return KEY_PREFIX ? k.toUpperCase().startsWith(KEY_PREFIX.toUpperCase()) : true;
 }
 
 function readStore(storage) {
@@ -40,70 +45,86 @@ function writeStore(storage, value) {
   try {
     storage.setItem(STORAGE_KEY, JSON.stringify(value));
   } catch {
-    /* private browsing; the licence simply will not persist */
+    /* private browsing: the licence simply will not persist */
   }
 }
 
-/**
- * Ask Gumroad about a key.
- * `increment_uses_count=false` keeps the counter meaningful as a device count rather than a
- * page-load count, since this runs on every visit.
- */
-export async function verify(key, { productId = PRODUCT_ID, fetchImpl = fetch } = {}) {
-  if (!productId) return { ok: false, reason: "no product configured in this build" };
+async function post(path, body, fetchImpl) {
   let res;
   try {
-    res = await fetchImpl(VERIFY_URL, {
+    res = await fetchImpl(HOST + path, {
       method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ product_id: productId, license_key: String(key).trim(), increment_uses_count: "false" }).toString(),
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
     });
   } catch (e) {
-    return { ok: false, reason: `network: ${e instanceof Error ? e.message : String(e)}`, network: true };
+    // a blocked cross-origin request lands here too, and is not the customer's fault
+    return { ok: false, reason: `could not reach the licence server: ${e instanceof Error ? e.message : String(e)}`, network: true };
   }
   let data;
   try {
     data = await res.json();
   } catch {
-    return { ok: false, reason: `Gumroad returned ${res.status}`, network: res.status >= 500 };
+    return { ok: false, reason: `licence server returned ${res.status}`, network: res.status >= 500 };
   }
-  if (!data.success) return { ok: false, reason: data.message || `Gumroad returned ${res.status}` };
-  const p = data.purchase || {};
-  if (p.refunded) return { ok: false, reason: "this purchase was refunded" };
-  if (p.disputed || p.chargebacked) return { ok: false, reason: "this purchase was disputed" };
-  if (p.subscription_cancelled_at || p.subscription_failed_at) return { ok: false, reason: "this subscription is no longer active" };
-  return { ok: true, customer: p.email };
+  if (res.status >= 500) return { ok: false, reason: `licence server returned ${res.status}`, network: true };
+  return { ok: true, data };
 }
 
-/** Verify and store. Returns the same shape as verify(). */
+/** Is this key currently valid? */
+export async function verify(key, { fetchImpl = fetch } = {}) {
+  const r = await post("/licenses/validate", { license_key: String(key).trim() }, fetchImpl);
+  if (!r.ok) return r;
+  if (r.data?.valid === true) return { ok: true };
+  return { ok: false, reason: r.data?.message || "that licence key is not valid, or is no longer active" };
+}
+
+/** Claim one of the key's activation slots for this browser. */
+export async function claim(key, name, { fetchImpl = fetch } = {}) {
+  const r = await post("/licenses/activate", { license_key: String(key).trim(), name }, fetchImpl);
+  if (!r.ok) return r;
+  const id = r.data?.id ?? r.data?.license_key_instance_id;
+  if (id) return { ok: true, instanceId: id };
+  return { ok: false, reason: r.data?.message || "no activation slot was returned; the activation limit may be reached" };
+}
+
+function deviceName() {
+  const ua = typeof navigator === "undefined" ? "" : navigator.userAgent;
+  const browser = /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Safari\//.test(ua) ? "Safari" : /Firefox\//.test(ua) ? "Firefox" : "browser";
+  const os = /Windows/.test(ua) ? "Windows" : /Mac OS/.test(ua) ? "macOS" : /Android/.test(ua) ? "Android" : /Linux/.test(ua) ? "Linux" : "";
+  return `stockproof · ${browser}${os ? " on " + os : ""}`;
+}
+
+/** Verify and store. */
 export async function activate(key, opts = {}) {
   const storage = opts.storage ?? globalThis.localStorage;
   const trimmed = String(key ?? "").trim();
   if (!trimmed) return { ok: false, reason: "enter a licence key" };
-  if (!looksLikeKey(trimmed)) return { ok: false, reason: "that does not look like a Gumroad licence key" };
-  const r = await verify(trimmed, opts);
-  if (r.ok) writeStore(storage, { key: trimmed, checkedAt: Date.now(), customer: r.customer ?? null });
-  return r;
+  if (!looksLikeKey(trimmed)) return { ok: false, reason: `that does not look like a stockproof licence key (they start with ${KEY_PREFIX})` };
+  const v = await verify(trimmed, opts);
+  if (!v.ok) return v;
+  // an activation-limit refusal does not invalidate the licence; the key still validates, this
+  // browser simply does not hold a slot
+  const a = await claim(trimmed, deviceName(), opts);
+  writeStore(storage, { key: trimmed, checkedAt: opts.now ?? Date.now(), instanceId: a.ok ? a.instanceId : null });
+  return { ok: true };
 }
 
-/**
- * Current licence state, re-checking with Gumroad at most once a day.
- * Returns { licensed, customer, reason, stale }.
- */
+/** Current state, re-checking at most once a day. */
 export async function status(opts = {}) {
   const storage = opts.storage ?? globalThis.localStorage;
   const now = opts.now ?? Date.now();
   const saved = readStore(storage);
   if (!saved || !saved.key) return { licensed: false, reason: "no licence key" };
   const age = now - (saved.checkedAt ?? 0);
-  if (age < RECHECK_MS) return { licensed: true, customer: saved.customer ?? undefined };
-  const r = await verify(saved.key, opts);
-  if (r.ok) {
-    writeStore(storage, { ...saved, checkedAt: now, customer: r.customer ?? null });
-    return { licensed: true, customer: r.customer };
+  if (age < RECHECK_MS) return { licensed: true };
+  const v = await verify(saved.key, opts);
+  if (v.ok) {
+    writeStore(storage, { ...saved, checkedAt: now });
+    return { licensed: true };
   }
-  if (r.network && age < GRACE_MS) return { licensed: true, customer: saved.customer ?? undefined, stale: true, reason: "offline; within grace" };
-  return { licensed: false, reason: r.reason };
+  if (v.network && age < GRACE_MS) return { licensed: true, stale: true, reason: "offline; within grace" };
+  return { licensed: false, reason: v.reason };
 }
 
 export function forget(opts = {}) {
@@ -115,4 +136,4 @@ export function forget(opts = {}) {
   }
 }
 
-export const _internal = { STORAGE_KEY, RECHECK_MS, GRACE_MS };
+export const _internal = { STORAGE_KEY, RECHECK_MS, GRACE_MS, HOST, deviceName };
