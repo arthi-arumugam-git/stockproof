@@ -7,14 +7,14 @@
  * access to someone's store.
  */
 
-import { parseCsv, toCsv } from "./csv.js?v=0.2.0";
-import { aggregateLocations, attachProducts } from "./shopify.js?v=0.2.0";
-import { DEFAULTS, groupByVendor, suggest, variance } from "./forecast.js?v=0.2.0";
-import { toSvg, encodable } from "./barcode.js?v=0.2.0";
-import * as licence from "./licence.js?v=0.2.0";
-import { PLATFORMS, byId, detectFile } from "./platforms/index.js?v=0.2.0";
-import { receive, receivingVariance } from "./receiving.js?v=0.2.0";
-import * as vendors from "./vendors.js?v=0.2.0";
+import { parseCsv, toCsv } from "./csv.js?v=0.2.1";
+import { aggregateLocations, attachProducts } from "./shopify.js?v=0.2.1";
+import { DEFAULTS, groupByVendor, suggest, variance } from "./forecast.js?v=0.2.1";
+import { toSvg, encodable } from "./barcode.js?v=0.2.1";
+import * as licence from "./licence.js?v=0.2.1";
+import { PLATFORMS, byId, detectFile } from "./platforms/index.js?v=0.2.1";
+import { receive, receivingVariance } from "./receiving.js?v=0.2.1";
+import * as vendors from "./vendors.js?v=0.2.1";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, attrs = {}, children = []) => {
@@ -101,6 +101,7 @@ function resetData() {
   state.orders = null;
   state.products = null;
   state.windowOverride = null;
+  state.notes = [];
   state.location = null;
   state.counts = new Map();
   state.receiving = { vendor: "__all__", counts: new Map() };
@@ -156,7 +157,9 @@ async function acceptFile(file) {
     state.files.products = r.name;
     setSlotState("products", `${label} · ${r.name} · ${result.products.bySku.size.toLocaleString()} products`);
   }
-  state.notes = notes;
+  // notes accumulate across the files of one load, so the product export's "no cost column"
+  // is still on screen after the analytics report lands; a platform switch clears them
+  state.notes = [...state.notes.filter((n) => !notes.includes(n)), ...notes].slice(-8);
   render();
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "stockproof",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "type": "module",
   "description": "Reorder suggestions, purchase orders, barcode labels, stock counts and receiving for Shopify and WooCommerce merchants, from CSV exports, entirely in the browser.",
