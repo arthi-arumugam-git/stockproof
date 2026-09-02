@@ -116,6 +116,22 @@
 <section id="panel-receiving" class="tabpanel" hidden></section>
 <section id="panel-licence" class="tabpanel" hidden></section>
 
+<section class="panel noprint" id="compare">
+  <h2>What Stocky did, and what stockproof does</h2>
+  <table>
+    <thead><tr><th>job</th><th>Stocky (retired 31 August 2026)</th><th>stockproof</th></tr></thead>
+    <tbody>
+      <tr><td>Purchase orders</td><td>created and tracked inside Shopify admin</td><td>built from the reorder list, printed or saved as a PDF to send to the supplier</td></tr>
+      <tr><td>What to reorder, and how much</td><td>suggested orders from sales</td><td>reorder suggestions from the orders export, with lead time and target cover per vendor (Plus)</td></tr>
+      <tr><td>Barcode labels</td><td>merchants printed Dymo labels straight from a purchase order, and named this as the thing they would miss most</td><td>Code 128 labels printed from the browser, from a purchase order or a product list</td></tr>
+      <tr><td>Stock count</td><td>stocktakes inside Shopify admin</td><td>a count that writes back a Shopify import file carrying both "On hand (current)" and "On hand (new)", so an import cannot silently overwrite a count</td></tr>
+      <tr><td>Receiving deliveries</td><td>received against the purchase order</td><td>received against the purchase order with margin per line (Plus)</td></tr>
+      <tr><td>Where the data goes</td><td>Shopify's servers</td><td>nowhere; the files are read in the browser tab</td></tr>
+      <tr><td>Platforms</td><td>Shopify only</td><td>Shopify and WooCommerce</td></tr>
+    </tbody>
+  </table>
+</section>
+
 <section class="panel noprint" id="answers">
   <h2>Questions merchants ask</h2>
   <dl>
