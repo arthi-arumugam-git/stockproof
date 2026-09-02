@@ -1,6 +1,6 @@
 {
   "name": "stockproof",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "private": true,
   "type": "module",
   "description": "Reorder suggestions, purchase orders and barcode labels for Shopify merchants, from CSV exports, entirely in the browser.",

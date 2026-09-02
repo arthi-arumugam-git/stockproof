@@ -30,7 +30,9 @@ Its licence endpoints are public, need no API key, and were verified working **f
    - **Duration**: leave blank for a subscription; keys stay valid while the subscription is active and are revoked automatically when it ends.
    - **Activation instructions**: `Paste the key into the Licence tab at arthi-arumugam-git.github.io/stockproof`
    - **Prefix**: `STOCKPROOF-` — this matters. Validate takes only the key, so the prefix is what stops another Dodo merchant's key unlocking this tool. The code expects exactly this prefix.
-2. Create the product: `stockproof licence`. On price, the research is specific — merchants in the Stocky threads name **$9.99 to $50 a month** as their ceiling, against Thrive/Shopventory at **$59 to $559**. **$19/month** sits where they said they would pay. Attach the entitlement.
+2. Create the product: `stockproof licence` at **$39/month**. Attach the entitlement.
+
+   On price, read the evidence carefully, because an earlier draft of this file got it wrong. A merchant who describes themselves as a *"tiny business"* wrote: *"We are unable to print labels after receiving products... So we have to pay $35/month for an additional app to do this."* That is money actually being spent, on **labels alone**. stockproof does labels, reorder suggestions, purchase orders and a stock count. Thrive/Shopventory, the nearest full alternative, starts at **$59/month** and has 105 reviews, so merchants do pay it. The *"$9.99"* figure in the research is a labels-only app, and the *"$30-$50 a month"* complaint was about **currency conversion**, not inventory — neither is a ceiling for this. $39 asks about what one merchant already pays for a quarter of the job, and a third less than the obvious alternative.
 3. Publish, then send Claude the **checkout URL**; it replaces `BUY_URL` in `site/js/app.js`, one line.
 
 ### Test it once

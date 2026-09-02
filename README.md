@@ -27,7 +27,7 @@ That is not just a workaround — for inventory data it is the better answer. Yo
 - **Reorder suggestions.** Sales velocity, days of cover, reorder point and a suggested quantity per SKU, grouped by vendor. Hover any number to see the inputs that produced it.
 - **Stock count with a variance preview.** Scan or type codes; see what differs from Shopify before anything is committed.
 
-**Licensed**
+**Licensed — $39/month**
 
 - **Purchase orders.** One printable page per vendor with cost, quantity, extended cost and a total. Also a CSV.
 - **Barcode labels.** Code 128 SVG label sheets, 50 × 25 mm, printed from a purchase order or from a selection.
@@ -60,9 +60,9 @@ This is the whole design principle, so it is worth listing:
 
 ```
 npm install
-npm test        # 57 tests, no browser needed
+npm test        # 77 tests, no browser needed
 npm run serve   # http://localhost:8099
-./release.sh 0.1.3   # bumps the cache-busting version on every asset, then runs the tests
+./release.sh 0.1.8   # bumps the cache-busting version on every asset, then runs the tests
 ```
 
 No build step and no runtime dependencies. The same ES modules run in the browser and under vitest.

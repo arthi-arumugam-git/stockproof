@@ -7,11 +7,11 @@
  * access to someone's store.
  */
 
-import { parseCsv, toCsv } from "./csv.js?v=0.1.7";
-import { aggregateLocations, attachProducts, detect, readInventory, readOrders, readProducts } from "./shopify.js?v=0.1.7";
-import { DEFAULTS, groupByVendor, suggest, variance, writebackRecords } from "./forecast.js?v=0.1.7";
-import { toSvg, encodable } from "./barcode.js?v=0.1.7";
-import * as licence from "./licence.js?v=0.1.7";
+import { parseCsv, toCsv } from "./csv.js?v=0.1.8";
+import { aggregateLocations, attachProducts, detect, readInventory, readOrders, readProducts } from "./shopify.js?v=0.1.8";
+import { DEFAULTS, groupByVendor, suggest, variance, writebackRecords } from "./forecast.js?v=0.1.8";
+import { toSvg, encodable } from "./barcode.js?v=0.1.8";
+import * as licence from "./licence.js?v=0.1.8";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, attrs = {}, children = []) => {

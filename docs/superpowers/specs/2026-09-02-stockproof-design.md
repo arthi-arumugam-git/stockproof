@@ -14,7 +14,7 @@ Evidence with URLs in `D:\money-scout\research\shopify-pain-points.md` and `will
 - Shopify's native purchase orders are called "a minimal ledger interface"; a merchant writes: *"The banner in Stocky just suggests to utilize Shopify for purchase orders but Shopify does not offer all that Stocky does so that is not an option!"* (18 likes).
 - What they name specifically: *"One of the best features of stocky is that you can print dymo barcode labels DIRECTLY from the Purchase orders in stocky"* (6 likes).
 - Willingness to pay is explicit: *"Pros- Stocky is free. Cons- Apparently that means they aren't ever going to improve it. I would HAPPILY pay money to use an improved version."*
-- The alternatives are priced far above what merchants say they will pay: Thrive/Shopventory "$59/month" to "$559/month"; merchants in the Stocky threads name "$9.99/month" and "$30-$50 a month".
+- Pricing evidence, read carefully: Thrive/Shopventory, the nearest full alternative, is "$59/month" to "$559/month" **and has 105 reviews**, so it is being paid for. A merchant describing a *"tiny business"* already pays *"$35/month for an additional app"* to print labels alone. The "$9.99/month" figure in the research is a labels-only app, and the "$30-$50 a month" complaint was about **currency conversion**, not inventory; neither is a ceiling for a tool that does labels, reorder, purchase orders and stock counts.
 
 ## The architectural decision that makes this shippable
 
@@ -43,12 +43,12 @@ The `On hand (current)` versus `On hand (new)` pair is the same property that ma
 - **Reorder suggestions.** Per SKU: sales velocity over the loaded window, days of cover remaining, suggested order quantity to reach a target cover, grouped by vendor. Rows where the data cannot support a suggestion are labelled, never guessed.
 - **Variance preview** for a stock count, on screen.
 
-### Paid, $19/month or $149 once
+### Paid, $39/month
 - **Purchase order export**: per vendor, with cost, quantity, extended cost and a total, as a printable page and a CSV.
 - **Barcode labels**: Code 128 SVG label sheets sized for common label stock, printed from a purchase order or from a selection.
 - **Inventory CSV writeback**: a valid Shopify inventory file with `On hand (new)` filled from the count, keeping `On hand (current)` so Shopify's safety validation stays on.
 
-Licence keys are Gumroad keys, verified by the same public endpoint billproof uses. The page holds the key in localStorage. Everything paid still runs locally; the key gates the export buttons, not the maths.
+Licence keys come from Dodo Payments, verified through its public endpoint, which needs no API key and works from the browser. The page holds the key in localStorage. Everything paid still runs locally; the key gates the export buttons, not the maths.
 
 ## Reorder maths, stated plainly
 
@@ -76,8 +76,8 @@ site/
   js/csv.js           RFC 4180 parser and writer (quoted fields, embedded commas and newlines, CRLF, BOM)
   js/shopify.js       column mapping and detection for the three export types
   js/forecast.js      velocity, cover, reorder point, suggested quantity
-  js/barcode.js       Code 128 encoder to SVG (subset B and C, checksum)
-  js/licence.js       Gumroad key verification, localStorage, offline grace
+  js/barcode.js       Code 128 subset B encoder to SVG (checksum, quiet zones)
+  js/licence.js       licence key verification and activation, localStorage, offline grace
   js/app.js           wiring, rendering, print and download
 tests/                vitest over js/*.js with fixture CSVs
 ```
