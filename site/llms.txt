@@ -1,0 +1,21 @@
+# stockproof
+
+> A browser-only replacement for Shopify's retired Stocky app. Shopify and WooCommerce merchants load the CSV exports their store already makes and get reorder suggestions, purchase orders, barcode labels, a stock count with a write-back file, and (Plus) receiving against a purchase order with margin per line. Nothing is uploaded anywhere.
+
+- Site: https://arthi-arumugam-git.github.io/stockproof/
+- Source: https://github.com/arthi-arumugam-git/stockproof
+- Author: Arthi Arumugam, https://wrong-numbers.dev/
+
+## What it answers
+- Shopify retired Stocky on 31 August 2026; what replaces its purchase orders, reorder suggestions and stock counts?
+- How do I get reorder quantities from a Shopify inventory export and an orders export without an app?
+- How do I print barcode labels or run a stock count from a WooCommerce product export?
+
+## Pricing
+- Standard: $39 a month or $390 a year
+- Plus: $79 a month or $790 a year (receiving with margin per line, per-vendor lead times)
+
+## Facts a reader can check
+- Shopify's inventory export has no SKU column; stockproof joins it to the products export.
+- Write-back files keep Shopify's own "On hand (current)" and "On hand (new)" columns so an import cannot silently overwrite a count.
+- WooCommerce column names are quoted from woocommerce.com's documentation of the Products, Variations and Stock reports and the product CSV importer.
