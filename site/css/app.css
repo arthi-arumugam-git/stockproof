@@ -1,0 +1,154 @@
+/* stockproof — one stylesheet. Dense and workmanlike: the reader is standing in a stockroom
+   with a scanner in one hand, not browsing. Print rules at the bottom carry the purchase order
+   and the label sheet, which are the two things that leave the screen. */
+
+:root {
+  --bg: #f5f3ee;
+  --panel: #fffefb;
+  --ink: #1b1a17;
+  --ink-2: #4c4941;
+  --dim: #807c72;
+  --line: #ddd8cc;
+  --line-2: #ebe6da;
+  --accent: #8a2f1d;
+  --good: #2f6b3a;
+  --warn: #8a6a1d;
+  --chip: #efeade;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #15140f; --panel: #1d1b16; --ink: #ece7db; --ink-2: #c8c2b4; --dim: #918c80;
+  --line: #302d26; --line-2: #262319; --accent: #e0704f; --good: #7fc48d; --warn: #d9b45a; --chip: #26241d;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15140f; --panel: #1d1b16; --ink: #ece7db; --ink-2: #c8c2b4; --dim: #918c80;
+    --line: #302d26; --line-2: #262319; --accent: #e0704f; --good: #7fc48d; --warn: #d9b45a; --chip: #26241d;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.5 var(--sans); letter-spacing: -0.003em;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.015em; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 20px 22px 96px; }
+
+/* header */
+header.top { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 6px; }
+header.top h1 { font-size: 20px; }
+header.top .tag { color: var(--dim); font-size: 14px; }
+header.top .spacer { flex: 1; }
+.privacy { color: var(--good); font-size: 13px; font-family: var(--mono); }
+button.link { background: none; border: 0; color: var(--dim); font: inherit; font-size: 13px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; padding: 0; }
+
+/* panels */
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin: 14px 0; }
+.panel > h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--dim); margin-bottom: 12px; }
+
+/* file slots */
+.slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.slot { border: 1.5px dashed var(--line); border-radius: 8px; padding: 14px; transition: border-color .12s, background .12s; }
+.slot.over { border-color: var(--accent); background: var(--chip); }
+.slot.loaded { border-style: solid; border-color: var(--good); }
+.slot h3 { font-size: 14px; margin-bottom: 3px; }
+.slot .req { font-size: 11px; font-family: var(--mono); color: var(--dim); text-transform: uppercase; letter-spacing: .06em; }
+.slot p { margin: 6px 0 10px; color: var(--ink-2); font-size: 13px; }
+.slot .state { font-family: var(--mono); font-size: 12px; color: var(--good); margin-top: 8px; }
+.slot .state.err { color: var(--accent); }
+.slot input[type=file] { display: none; }
+.slot label.pick { display: inline-block; font-size: 13px; border: 1px solid var(--line); border-radius: 6px; padding: 5px 12px; cursor: pointer; background: var(--bg); }
+.slot label.pick:hover { border-color: var(--ink); }
+.howto { margin-top: 12px; color: var(--dim); font-size: 13px; }
+.howto code { font-family: var(--mono); font-size: 12px; background: var(--chip); padding: 1px 5px; border-radius: 3px; }
+
+/* settings */
+.settings { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 12px; color: var(--dim); font-family: var(--mono); }
+.field input, .field select { font: inherit; font-size: 14px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--ink); min-width: 90px; }
+.field input[type=number] { width: 84px; }
+
+/* tabs */
+nav.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin: 22px 0 0; flex-wrap: wrap; }
+nav.tabs button {
+  font: inherit; font-size: 14px; background: none; border: 0; border-bottom: 2px solid transparent;
+  padding: 9px 14px; cursor: pointer; color: var(--dim); margin-bottom: -1px;
+}
+nav.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+nav.tabs button:disabled { opacity: .45; cursor: not-allowed; }
+
+/* tables */
+.tablewrap { overflow-x: auto; }
+table.data { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+table.data th { text-align: left; font-family: var(--mono); font-size: 11.5px; font-weight: 400; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+table.data td { padding: 8px 10px 8px 0; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+table.data td.n, table.data th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.data tr:hover td { background: var(--chip); }
+table.data .muted { color: var(--dim); }
+table.data .low { color: var(--accent); font-weight: 600; }
+table.data .sku { font-family: var(--mono); font-size: 12.5px; }
+.why { border-bottom: 1px dotted var(--dim); cursor: help; }
+
+/* misc */
+.rowbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 14px 0; }
+.btn { font: inherit; font-size: 14px; padding: 8px 14px; border: 1px solid var(--ink); border-radius: 6px; background: var(--panel); color: var(--ink); cursor: pointer; }
+.btn.primary { background: var(--ink); color: var(--bg); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.note { color: var(--dim); font-size: 13px; }
+.warnbox { border-left: 3px solid var(--warn); padding: 8px 12px; background: var(--chip); border-radius: 0 6px 6px 0; font-size: 13.5px; margin: 12px 0; color: var(--ink-2); }
+.errbox { border-left-color: var(--accent); }
+.empty { color: var(--dim); padding: 28px 0; text-align: center; font-size: 14px; }
+.chip { display: inline-block; background: var(--chip); border-radius: 4px; padding: 1px 7px; font-size: 12px; font-family: var(--mono); }
+.locked { display: inline-flex; align-items: center; gap: 6px; }
+details.paid { margin: 12px 0; }
+details.paid summary { cursor: pointer; color: var(--dim); font-size: 13px; }
+textarea#countpaste { width: 100%; min-height: 130px; font-family: var(--mono); font-size: 13px; padding: 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--ink); resize: vertical; }
+
+/* purchase orders */
+.po { border: 1px solid var(--line); border-radius: 8px; padding: 18px; margin: 14px 0; background: var(--panel); }
+.po h3 { font-size: 17px; }
+.po .meta { color: var(--dim); font-size: 13px; margin: 4px 0 12px; }
+.po tfoot td { font-weight: 600; border-top: 1px solid var(--line); border-bottom: 0; padding-top: 10px; }
+
+/* labels */
+.labels { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.label {
+  width: 50mm; height: 25mm; border: 1px solid var(--line); border-radius: 3px;
+  padding: 1.5mm 2mm; display: flex; flex-direction: column; justify-content: space-between;
+  background: #fff; color: #000; overflow: hidden;
+}
+.label .lt { font-size: 8pt; line-height: 1.15; max-height: 2.4em; overflow: hidden; }
+.label svg { width: 100%; height: 9mm; display: block; }
+.label .lb { font-family: var(--mono); font-size: 7pt; text-align: center; letter-spacing: .04em; }
+
+footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--dim); font-size: 13px; display: flex; gap: 20px; flex-wrap: wrap; }
+
+@media (max-width: 620px) {
+  .wrap { padding: 16px 14px 80px; }
+  nav.tabs button { padding: 8px 10px; font-size: 13px; }
+}
+
+/* ---- print: only the purchase orders or the label sheet ---- */
+@media print {
+  body { background: #fff; color: #000; }
+  .noprint, header.top, nav.tabs, .panel.controls, footer, .rowbar { display: none !important; }
+  .wrap { max-width: none; padding: 0; }
+  .po { border: 0; padding: 0; margin: 0 0 12mm; break-inside: avoid; page-break-after: always; }
+  .po:last-child { page-break-after: auto; }
+  table.data { font-size: 10pt; }
+  table.data th { color: #000; border-bottom: 1px solid #000; }
+  table.data td { border-bottom: 1px solid #ccc; }
+  table.data tr:hover td { background: none; }
+  .labels { gap: 0; }
+  .label { border: 0; break-inside: avoid; page-break-inside: avoid; }
+  .tablewrap { overflow: visible; }
+}
