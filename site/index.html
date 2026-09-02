@@ -11,7 +11,9 @@
 <link rel="stylesheet" href="css/app.css?v=0.2.2">
 <!-- GEO-JSONLD -->
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "stockproof", "url": "https://arthi-arumugam-git.github.io/stockproof/", "applicationCategory": "BusinessApplication", "operatingSystem": "Any (runs in the browser)", "description": "Reorder suggestions, purchase orders, barcode labels, stock counts and receiving for Shopify and WooCommerce merchants, from the CSV exports the store already makes. A replacement for Shopify's retired Stocky app.", "softwareVersion": "0.2.2", "codeRepository": "https://github.com/arthi-arumugam-git/stockproof", "author": {"@type": "Person", "name": "Arthi Arumugam", "url": "https://github.com/arthi-arumugam-git", "jobTitle": "LLM cost and metering auditor", "worksFor": {"@type": "Organization", "name": "Wrong Numbers", "url": "https://wrong-numbers.dev/"}}, "offers": [{"@type": "Offer", "name": "Standard, monthly", "price": "39", "priceCurrency": "USD", "url": "https://checkout.dodopayments.com/buy/pdt_0NmijLgj2xavrtNCK6Kst?quantity=1"}, {"@type": "Offer", "name": "Standard, annual", "price": "390", "priceCurrency": "USD", "url": "https://checkout.dodopayments.com/buy/pdt_0NmijjvKgOb6aqo05nKJo?quantity=1"}, {"@type": "Offer", "name": "Plus, monthly", "price": "79", "priceCurrency": "USD", "url": "https://checkout.dodopayments.com/buy/pdt_0NmikQUVcKrpEPiNOqzIt?quantity=1"}, {"@type": "Offer", "name": "Plus, annual", "price": "790", "priceCurrency": "USD", "url": "https://checkout.dodopayments.com/buy/pdt_0NmilBOPh4sl8jtT8ThpE?quantity=1"}]}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What replaced Stocky after Shopify retired it on 31 August 2026?", "acceptedAnswer": {"@type": "Answer", "text": "stockproof does the parts of Stocky that merchants said they missed most: reorder suggestions from sales velocity, purchase orders you can send to a supplier, barcode labels, a stock count with a write-back file Shopify will import, and receiving deliveries against a purchase order. It runs in the browser from the CSV exports the store already makes, so it needs no app install and no API access."}}, {"@type": "Question", "name": "Which files does stockproof need from Shopify?", "acceptedAnswer": {"@type": "Answer", "text": "The inventory export (stock by location), the orders export (for sales velocity) and the products export (for SKUs, since Shopify's inventory export has no SKU column). stockproof joins them and refuses to guess when two products share a title."}}, {"@type": "Question", "name": "Does it work with WooCommerce?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. It reads the WooCommerce Analytics Products or Variations report (stock and units sold), the Stock report, and the Products export, and writes back a stock update file the WooCommerce importer accepts with 'Update existing products' ticked. The column names are quoted from woocommerce.com's documentation."}}, {"@type": "Question", "name": "Is any of my data uploaded?", "acceptedAnswer": {"@type": "Answer", "text": "No. The files are read in the browser tab and never sent anywhere. The only network call is the licence check, which sends the licence key and nothing else."}}, {"@type": "Question", "name": "What does stockproof cost?", "acceptedAnswer": {"@type": "Answer", "text": "Standard is $39 a month or $390 a year. Plus, which adds receiving with margin per line and per-vendor lead times and target cover, is $79 a month or $790 a year. One licence covers two devices."}}]}</script>
 <!-- /GEO-JSONLD -->
+<style>.define{font-size:1.05rem;line-height:1.5;max-width:78ch;margin:0 0 1rem}#answers dt{font-weight:600;margin-top:1rem}#answers dd{margin:.3rem 0 0;line-height:1.5}</style>
 </head>
 <body>
 <div class="wrap">
@@ -30,6 +32,8 @@
   deliveries in. It reads the CSV files your store already exports — Shopify or WooCommerce — and runs entirely in
   your browser. Nothing is sent anywhere.
 </div>
+
+<p class="define noprint" id="what"><strong>stockproof</strong> is a browser-only replacement for Shopify's retired Stocky app: reorder suggestions, purchase orders, barcode labels, stock counts and receiving for Shopify and WooCommerce merchants, built from the CSV exports the store already makes. Standard is $39 a month; Plus, with receiving and per-vendor lead times, is $79 a month.</p>
 
 <section class="panel noprint" id="filesPanel">
   <h2>1 · Load your exports</h2>
@@ -111,6 +115,22 @@
 <section id="panel-count" class="tabpanel" hidden></section>
 <section id="panel-receiving" class="tabpanel" hidden></section>
 <section id="panel-licence" class="tabpanel" hidden></section>
+
+<section class="panel noprint" id="answers">
+  <h2>Questions merchants ask</h2>
+  <dl>
+    <dt>What replaced Stocky after Shopify retired it on 31 August 2026?</dt>
+    <dd>stockproof does the parts of Stocky that merchants said they missed most: reorder suggestions from sales velocity, purchase orders you can send to a supplier, barcode labels, a stock count with a write-back file Shopify will import, and receiving deliveries against a purchase order. It runs in the browser from the CSV exports the store already makes, so it needs no app install and no API access.</dd>
+    <dt>Which files does stockproof need from Shopify?</dt>
+    <dd>The inventory export (stock by location), the orders export (for sales velocity) and the products export (for SKUs, since Shopify&#x27;s inventory export has no SKU column). stockproof joins them and refuses to guess when two products share a title.</dd>
+    <dt>Does it work with WooCommerce?</dt>
+    <dd>Yes. It reads the WooCommerce Analytics Products or Variations report (stock and units sold), the Stock report, and the Products export, and writes back a stock update file the WooCommerce importer accepts with &#x27;Update existing products&#x27; ticked. The column names are quoted from woocommerce.com&#x27;s documentation.</dd>
+    <dt>Is any of my data uploaded?</dt>
+    <dd>No. The files are read in the browser tab and never sent anywhere. The only network call is the licence check, which sends the licence key and nothing else.</dd>
+    <dt>What does stockproof cost?</dt>
+    <dd>Standard is $39 a month or $390 a year. Plus, which adds receiving with margin per line and per-vendor lead times and target cover, is $79 a month or $790 a year. One licence covers two devices.</dd>
+  </dl>
+</section>
 
 <footer class="noprint">
   <span>stockproof · built by <a href="https://github.com/arthi-arumugam-git">Arthi Arumugam</a></span>
