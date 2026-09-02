@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { _internal, activate, forget, looksLikeKey, status, tier, verify } from "../site/js/licence.js";
+import { _internal, activate, forget, looksLikeKey, PRODUCTS, status, tierOf, verify } from "../site/js/licence.js";
 
 const jsonRes = (body, statusCode = 200) => ({ status: statusCode, ok: statusCode < 400, json: async () => body });
+
+const STANDARD = "pdt_0NmijLgj2xavrtNCK6Kst";
+const STANDARD_YEAR = "pdt_0NmijjvKgOb6aqo05nKJo";
+const PLUS = "pdt_0NmikQUVcKrpEPiNOqzIt";
+const PLUS_YEAR = "pdt_0NmilBOPh4sl8jtT8ThpE";
 
 /** A localStorage stand-in, plus one that throws the way private browsing does. */
 const memStore = () => {
@@ -24,15 +29,21 @@ const throwingStore = () => ({
   },
 });
 
-const routed = (validBody, activateBody) => async (url) =>
-  String(url).endsWith("/validate") ? jsonRes(validBody) : jsonRes(activateBody);
+/** The shape the live activate endpoint answers with: an instance id and the product the key was sold for. */
+const activated = (productId, id = "inst_1") => ({ id, product: { product_id: productId, name: null } });
+
+const routed = (validBody, activateBody, deactivateBody = {}) => async (url) => {
+  const u = String(url);
+  if (u.endsWith("/validate")) return jsonRes(validBody);
+  if (u.endsWith("/deactivate")) return jsonRes(deactivateBody);
+  return jsonRes(activateBody);
+};
 
 describe("key shape", () => {
-  it("accepts the product's prefix in any case and rejects other keys", () => {
-    expect(looksLikeKey("STOCKPROOF-AAAA-BBBB")).toBe(true);
-    expect(looksLikeKey("stockproof-aaaa-bbbb")).toBe(true);
-    expect(looksLikeKey("  STOCKPROOF-AAAA-BBBB  ")).toBe(true);
-    expect(looksLikeKey("BILLPROOF-AAAA-BBBB")).toBe(false);
+  it("only refuses keys that are obviously not keys; Dodo keys carry no prefix", () => {
+    expect(looksLikeKey("ABCD-EFGH-IJKL")).toBe(true);
+    expect(looksLikeKey("  ABCD-EFGH-IJKL  ")).toBe(true);
+    expect(looksLikeKey("short")).toBe(false);
     expect(looksLikeKey("")).toBe(false);
     expect(looksLikeKey(null)).toBe(false);
   });
@@ -76,43 +87,63 @@ describe("verify", () => {
 });
 
 describe("activate", () => {
-  it("stores the key and its activation instance", async () => {
+  it("stores the key, its activation instance, and the tier read from the product", async () => {
     const storage = memStore();
-    const r = await activate("STOCKPROOF-K", { storage, now: 1000, fetchImpl: routed({ valid: true }, { id: "inst_1" }) });
-    expect(r.ok).toBe(true);
-    expect(JSON.parse(storage.getItem(_internal.STORAGE_KEY))).toMatchObject({ key: "STOCKPROOF-K", checkedAt: 1000, instanceId: "inst_1" });
+    const r = await activate("ABCD-EFGH-IJKL", { storage, now: 1000, fetchImpl: routed({ valid: true }, activated(STANDARD)) });
+    expect(r).toEqual({ ok: true, tier: "standard" });
+    expect(JSON.parse(storage.getItem(_internal.STORAGE_KEY))).toMatchObject({ key: "ABCD-EFGH-IJKL", checkedAt: 1000, instanceId: "inst_1", productId: STANDARD, tier: "standard" });
   });
 
-  it("still licenses the browser when the activation limit is reached, because the key is valid", async () => {
+  it("refuses when no slot is granted, because the tier comes from the activation", async () => {
     const storage = memStore();
-    const r = await activate("STOCKPROOF-K", { storage, fetchImpl: routed({ valid: true }, { message: "activation limit reached" }) });
-    expect(r.ok).toBe(true);
-    expect(JSON.parse(storage.getItem(_internal.STORAGE_KEY)).instanceId).toBeNull();
+    const r = await activate("ABCD-EFGH-IJKL", { storage, fetchImpl: routed({ valid: true }, { message: "activation limit reached" }) });
+    expect(r.ok).toBe(false);
+    expect(r.reason).toMatch(/activation limit reached/);
+    expect(r.reason).toMatch(/Forget/);
+    expect(storage.getItem(_internal.STORAGE_KEY)).toBeNull();
   });
 
-  it("refuses an empty key and a key for a different product without calling out", async () => {
+  it("refuses a key sold for someone else's product and hands the slot straight back", async () => {
+    const storage = memStore();
+    const calls = [];
+    const fetchImpl = async (url, init) => {
+      calls.push(String(url).split("/").pop());
+      const u = String(url);
+      if (u.endsWith("/validate")) return jsonRes({ valid: true });
+      if (u.endsWith("/activate")) return jsonRes(activated("pdt_someone_else", "inst_9"));
+      expect(JSON.parse(init.body)).toEqual({ license_key: "ABCD-EFGH-IJKL", license_key_instance_id: "inst_9" });
+      return jsonRes({});
+    };
+    const r = await activate("ABCD-EFGH-IJKL", { storage, fetchImpl });
+    expect(r.ok).toBe(false);
+    expect(r.reason).toMatch(/different product/);
+    expect(calls).toEqual(["validate", "activate", "deactivate"]);
+    expect(storage.getItem(_internal.STORAGE_KEY)).toBeNull();
+  });
+
+  it("refuses an empty or too-short key without calling out", async () => {
     let called = false;
     const fetchImpl = async () => {
       called = true;
       return jsonRes({ valid: true });
     };
     expect((await activate("", { storage: memStore(), fetchImpl })).ok).toBe(false);
-    expect((await activate("BILLPROOF-K", { storage: memStore(), fetchImpl })).ok).toBe(false);
+    expect((await activate("abc", { storage: memStore(), fetchImpl })).ok).toBe(false);
     expect(called).toBe(false);
   });
 
   it("does not store anything when the key is rejected", async () => {
     const storage = memStore();
-    const r = await activate("STOCKPROOF-K", { storage, fetchImpl: async () => jsonRes({ valid: false }) });
+    const r = await activate("ABCD-EFGH-IJKL", { storage, fetchImpl: async () => jsonRes({ valid: false }) });
     expect(r.ok).toBe(false);
     expect(storage.getItem(_internal.STORAGE_KEY)).toBeNull();
   });
 });
 
 describe("status", () => {
-  const primed = (checkedAt) => {
+  const primed = (checkedAt, extra = { productId: STANDARD, tier: "standard" }) => {
     const storage = memStore();
-    storage.setItem(_internal.STORAGE_KEY, JSON.stringify({ key: "STOCKPROOF-K", checkedAt }));
+    storage.setItem(_internal.STORAGE_KEY, JSON.stringify({ key: "ABCD-EFGH-IJKL", checkedAt, ...extra }));
     return storage;
   };
 
@@ -139,7 +170,7 @@ describe("status", () => {
         return jsonRes({ valid: true });
       },
     });
-    expect(r.licensed).toBe(true);
+    expect(r).toEqual({ licensed: true, tier: "standard" });
     expect(called).toBe(false);
   });
 
@@ -166,13 +197,37 @@ describe("status", () => {
     const r = await status({ storage: primed(0), now: _internal.RECHECK_MS + 1, fetchImpl: async () => jsonRes({ valid: false }) });
     expect(r.licensed).toBe(false);
   });
+
+  it("a stored key with no product (from before tiers) asks to be entered again rather than guessing a tier", async () => {
+    const r = await status({ storage: primed(1, {}), now: 2 });
+    expect(r).toMatchObject({ licensed: false, tier: null });
+    expect(r.reason).toMatch(/enter it again/);
+  });
+});
+
+describe("forget", () => {
+  it("drops the key and hands the slot back", async () => {
+    const storage = memStore();
+    await activate("ABCD-EFGH-IJKL", { storage, fetchImpl: routed({ valid: true }, activated(PLUS, "inst_7")) });
+    let released = null;
+    forget({
+      storage,
+      fetchImpl: async (url, init) => {
+        released = { url: String(url), body: JSON.parse(init.body) };
+        return jsonRes({});
+      },
+    });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(storage.getItem(_internal.STORAGE_KEY)).toBeNull();
+    expect(released).toEqual({ url: _internal.HOST + "/licenses/deactivate", body: { license_key: "ABCD-EFGH-IJKL", license_key_instance_id: "inst_7" } });
+  });
 });
 
 describe("private browsing", () => {
   it("never throws when storage is unavailable", async () => {
     const storage = throwingStore();
     await expect(status({ storage })).resolves.toMatchObject({ licensed: false });
-    await expect(activate("STOCKPROOF-K", { storage, fetchImpl: routed({ valid: true }, { id: "i" }) })).resolves.toMatchObject({ ok: true });
+    await expect(activate("ABCD-EFGH-IJKL", { storage, fetchImpl: routed({ valid: true }, activated(STANDARD)) })).resolves.toMatchObject({ ok: true });
     expect(() => forget({ storage })).not.toThrow();
   });
 });
@@ -186,24 +241,22 @@ describe("device name", () => {
 });
 
 describe("tiers", () => {
-  it("reads the tier from the key prefix and accepts a Plus key everywhere a Standard one is accepted", () => {
-    expect(tier("STOCKPROOF-AAAA-BBBB")).toBe("standard");
-    expect(tier("STOCKPROOFPLUS-AAAA-BBBB")).toBe("plus");
-    expect(tier("stockproofplus-aaaa")).toBe("plus");
-    expect(tier("BILLPROOF-AAAA")).toBeNull();
-    expect(tier("")).toBeNull();
-    expect(looksLikeKey("STOCKPROOFPLUS-AAAA-BBBB")).toBe(true);
+  it("maps each of the four live products to its tier and nothing else to anything", () => {
+    expect(Object.keys(PRODUCTS)).toHaveLength(4);
+    expect(tierOf(STANDARD)).toBe("standard");
+    expect(tierOf(STANDARD_YEAR)).toBe("standard");
+    expect(tierOf(PLUS)).toBe("plus");
+    expect(tierOf(PLUS_YEAR)).toBe("plus");
+    expect(tierOf("pdt_someone_else")).toBeNull();
+    expect(tierOf(undefined)).toBeNull();
   });
 
   it("reports the tier from status, for a fresh check and for a cached one", async () => {
     const storage = memStore();
-    await activate("STOCKPROOFPLUS-K", { storage, now: 1000, fetchImpl: routed({ valid: true }, { id: "i" }) });
+    await activate("ABCD-EFGH-IJKL", { storage, now: 1000, fetchImpl: routed({ valid: true }, activated(PLUS_YEAR)) });
     expect(await status({ storage, now: 2000 })).toEqual({ licensed: true, tier: "plus" });
     const later = await status({ storage, now: 2000 + _internal.RECHECK_MS, fetchImpl: async () => jsonRes({ valid: true }) });
     expect(later).toEqual({ licensed: true, tier: "plus" });
-    const std = memStore();
-    std.setItem(_internal.STORAGE_KEY, JSON.stringify({ key: "STOCKPROOF-K", checkedAt: 0 }));
-    expect((await status({ storage: std, now: 1 })).tier).toBe("standard");
     expect((await status({ storage: memStore() })).tier).toBeNull();
   });
 });

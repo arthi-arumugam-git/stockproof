@@ -7,14 +7,14 @@
  * access to someone's store.
  */
 
-import { parseCsv, toCsv } from "./csv.js?v=0.2.1";
-import { aggregateLocations, attachProducts } from "./shopify.js?v=0.2.1";
-import { DEFAULTS, groupByVendor, suggest, variance } from "./forecast.js?v=0.2.1";
-import { toSvg, encodable } from "./barcode.js?v=0.2.1";
-import * as licence from "./licence.js?v=0.2.1";
-import { PLATFORMS, byId, detectFile } from "./platforms/index.js?v=0.2.1";
-import { receive, receivingVariance } from "./receiving.js?v=0.2.1";
-import * as vendors from "./vendors.js?v=0.2.1";
+import { parseCsv, toCsv } from "./csv.js?v=0.2.2";
+import { aggregateLocations, attachProducts } from "./shopify.js?v=0.2.2";
+import { DEFAULTS, groupByVendor, suggest, variance } from "./forecast.js?v=0.2.2";
+import { toSvg, encodable } from "./barcode.js?v=0.2.2";
+import * as licence from "./licence.js?v=0.2.2";
+import { PLATFORMS, byId, detectFile } from "./platforms/index.js?v=0.2.2";
+import { receive, receivingVariance } from "./receiving.js?v=0.2.2";
+import * as vendors from "./vendors.js?v=0.2.2";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, attrs = {}, children = []) => {
@@ -32,9 +32,11 @@ const el = (tag, attrs = {}, children = []) => {
 };
 
 /** Set once the Dodo products exist; until then the buy buttons point at the README. */
-const BUY_URL = "https://github.com/arthi-arumugam-git/stockproof#licensed";
-/** The Plus product needs its own Dodo product with the STOCKPROOFPLUS- prefix (see SETUP.md). */
-const PLUS_BUY_URL = "https://github.com/arthi-arumugam-git/stockproof#licensed";
+const BUY_URL = "https://checkout.dodopayments.com/buy/pdt_0NmijLgj2xavrtNCK6Kst?quantity=1";
+const BUY_URL_ANNUAL = "https://checkout.dodopayments.com/buy/pdt_0NmijjvKgOb6aqo05nKJo?quantity=1";
+/** The Plus tier is its own pair of Dodo products; the tier comes from the product id at activation (see SETUP.md). */
+const PLUS_BUY_URL = "https://checkout.dodopayments.com/buy/pdt_0NmikQUVcKrpEPiNOqzIt?quantity=1";
+const PLUS_BUY_URL_ANNUAL = "https://checkout.dodopayments.com/buy/pdt_0NmilBOPh4sl8jtT8ThpE?quantity=1";
 
 const state = {
   files: { inventory: null, orders: null, products: null },
@@ -868,7 +870,7 @@ function renderLicence(host) {
         : el("p", {
             html:
               "Reorder suggestions, the stock count and the variance table are free and always will be. " +
-              "A licence unlocks the things that leave the screen; the tier is read from the key.",
+              "A licence unlocks the things that leave the screen; the tier comes with the key.",
           }),
       tiers,
       state.licensed
@@ -886,12 +888,14 @@ function renderLicence(host) {
               onclick: async () => {
                 msg.textContent = "checking…";
                 const r = await licence.activate(input.value);
-                if (r.ok) { state.licensed = true; state.tier = licence.tier(input.value); render(); }
+                if (r.ok) { state.licensed = true; state.tier = r.tier; render(); }
                 else msg.textContent = r.reason;
               },
             }),
-            el("a", { class: "btn", href: BUY_URL, target: "_blank", rel: "noopener", text: "Buy Standard" }),
-            el("a", { class: "btn", href: PLUS_BUY_URL, target: "_blank", rel: "noopener", text: "Buy Plus" }),
+            el("a", { class: "btn", href: BUY_URL, target: "_blank", rel: "noopener", text: "Buy Standard, $39 a month" }),
+            el("a", { class: "btn", href: BUY_URL_ANNUAL, target: "_blank", rel: "noopener", text: "Standard, $390 a year" }),
+            el("a", { class: "btn", href: PLUS_BUY_URL, target: "_blank", rel: "noopener", text: "Buy Plus, $79 a month" }),
+            el("a", { class: "btn", href: PLUS_BUY_URL_ANNUAL, target: "_blank", rel: "noopener", text: "Plus, $790 a year" }),
           ]),
       msg,
       el("p", { class: "note", text: "The key is checked once a day. If you are offline the last check stands for 30 days, so a count in a stockroom with no signal is never blocked. One licence covers a set number of devices; remove it here to free a slot before moving to another machine. Annual plans are the monthly price with two months free." }),

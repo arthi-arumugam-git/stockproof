@@ -20,26 +20,26 @@ const RECHECK_MS = 24 * 60 * 60 * 1000;
 const GRACE_MS = 30 * 24 * 60 * 60 * 1000;
 
 /**
- * Dodo's validate endpoint takes only the key, so a key from any Dodo merchant would validate.
- * Setting a licence-key prefix on the product in the Dodo dashboard and checking it here stops an
- * unrelated key unlocking this tool. Empty means "accept any shape".
+ * Dodo's validate endpoint takes only the key, so a key from any Dodo merchant would validate. The
+ * activate endpoint answers with the product the key was sold for (its response carries
+ * `product.product_id`), and that is the check: only a key sold for one of these products unlocks
+ * the page, and the product says which tier. Dodo keys carry no prefix, so nothing about the key's
+ * shape is trusted.
  */
-export const KEY_PREFIX = "STOCKPROOF-";
-/** The Plus product is a second Dodo product with its own prefix; the prefix is what carries the tier. */
-export const PLUS_PREFIX = "STOCKPROOFPLUS-";
+export const PRODUCTS = Object.freeze({
+  pdt_0NmijLgj2xavrtNCK6Kst: "standard", // stockproof Standard, $39 a month
+  pdt_0NmijjvKgOb6aqo05nKJo: "standard", // stockproof Standard, $390 a year
+  pdt_0NmikQUVcKrpEPiNOqzIt: "plus", // stockproof Plus, $79 a month
+  pdt_0NmilBOPh4sl8jtT8ThpE: "plus", // stockproof Plus, $790 a year
+});
 
-/** "plus" or "standard" from the key's prefix; null when it is neither. */
-export function tier(key) {
-  const k = String(key ?? "").trim().toUpperCase();
-  if (PLUS_PREFIX && k.startsWith(PLUS_PREFIX.toUpperCase())) return "plus";
-  if (KEY_PREFIX && k.startsWith(KEY_PREFIX.toUpperCase())) return "standard";
-  return null;
+/** "plus" or "standard" for one of this page's products; null for anything else. */
+export function tierOf(productId) {
+  return PRODUCTS[String(productId ?? "")] ?? null;
 }
 
 export function looksLikeKey(key) {
-  const k = String(key ?? "").trim();
-  if (k.length < 8) return false;
-  return KEY_PREFIX ? tier(k) !== null : true;
+  return String(key ?? "").trim().length >= 8;
 }
 
 function readStore(storage) {
@@ -89,13 +89,20 @@ export async function verify(key, { fetchImpl = fetch } = {}) {
   return { ok: false, reason: r.data?.message || "that licence key is not valid, or is no longer active" };
 }
 
-/** Claim one of the key's activation slots for this browser. */
+/** Claim one of the key's activation slots for this browser; the answer names the product the key was sold for. */
 export async function claim(key, name, { fetchImpl = fetch } = {}) {
   const r = await post("/licenses/activate", { license_key: String(key).trim(), name }, fetchImpl);
   if (!r.ok) return r;
   const id = r.data?.id ?? r.data?.license_key_instance_id;
-  if (id) return { ok: true, instanceId: id };
+  if (id) return { ok: true, instanceId: id, productId: r.data?.product?.product_id ?? null };
   return { ok: false, reason: r.data?.message || "no activation slot was returned; the activation limit may be reached" };
+}
+
+/** Give a slot back, so the key can be used on another device. */
+export async function release(key, instanceId, { fetchImpl = fetch } = {}) {
+  if (!instanceId) return { ok: false, reason: "nothing to release" };
+  const r = await post("/licenses/deactivate", { license_key: String(key).trim(), license_key_instance_id: instanceId }, fetchImpl);
+  return r.ok ? { ok: true } : r;
 }
 
 function deviceName() {
@@ -105,19 +112,25 @@ function deviceName() {
   return `stockproof · ${browser}${os ? " on " + os : ""}`;
 }
 
-/** Verify and store. */
+/** Verify, claim a slot, learn the tier from the product, store. */
 export async function activate(key, opts = {}) {
   const storage = opts.storage ?? globalThis.localStorage;
   const trimmed = String(key ?? "").trim();
   if (!trimmed) return { ok: false, reason: "enter a licence key" };
-  if (!looksLikeKey(trimmed)) return { ok: false, reason: `that does not look like a stockproof licence key (they start with ${KEY_PREFIX} or ${PLUS_PREFIX})` };
+  if (!looksLikeKey(trimmed)) return { ok: false, reason: "that does not look like a licence key" };
   const v = await verify(trimmed, opts);
   if (!v.ok) return v;
-  // an activation-limit refusal does not invalidate the licence; the key still validates, this
-  // browser simply does not hold a slot
   const a = await claim(trimmed, deviceName(), opts);
-  writeStore(storage, { key: trimmed, checkedAt: opts.now ?? Date.now(), instanceId: a.ok ? a.instanceId : null });
-  return { ok: true };
+  if (!a.ok) {
+    return a.network ? a : { ok: false, reason: `${a.reason}. On a device that no longer needs it, open the Licence tab and choose Forget to free the slot.` };
+  }
+  const t = tierOf(a.productId);
+  if (!t) {
+    await release(trimmed, a.instanceId, opts);
+    return { ok: false, reason: "that key was sold for a different product" };
+  }
+  writeStore(storage, { key: trimmed, checkedAt: opts.now ?? Date.now(), instanceId: a.instanceId, productId: a.productId, tier: t });
+  return { ok: true, tier: t };
 }
 
 /** Current state, re-checking at most once a day. */
@@ -126,7 +139,8 @@ export async function status(opts = {}) {
   const now = opts.now ?? Date.now();
   const saved = readStore(storage);
   if (!saved || !saved.key) return { licensed: false, tier: null, reason: "no licence key" };
-  const t = tier(saved.key);
+  const t = saved.tier ?? tierOf(saved.productId);
+  if (!t) return { licensed: false, tier: null, reason: "the stored key predates tiers; enter it again" };
   const age = now - (saved.checkedAt ?? 0);
   if (age < RECHECK_MS) return { licensed: true, tier: t };
   const v = await verify(saved.key, opts);
@@ -138,8 +152,11 @@ export async function status(opts = {}) {
   return { licensed: false, tier: null, reason: v.reason };
 }
 
+/** Drop the key from this browser and hand its slot back (best effort; the slot also frees on its own). */
 export function forget(opts = {}) {
   const storage = opts.storage ?? globalThis.localStorage;
+  const saved = readStore(storage);
+  if (saved?.key && saved?.instanceId) release(saved.key, saved.instanceId, opts).catch(() => {});
   try {
     storage.removeItem(STORAGE_KEY);
   } catch {

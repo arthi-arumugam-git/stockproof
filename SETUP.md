@@ -19,56 +19,20 @@ The Code 128 pattern table is verified structurally by the tests (107 patterns, 
 
 ---
 
-## 2. Create the Dodo Payments products (about 30 minutes)
+## 2. Dodo Payments: done on 2026-09-02, one thing left
 
-Gumroad did not work, so both products sell through **Dodo Payments**. It is an Indian company, it is the merchant of record so EU and UK VAT is handled for you, and its FAQ says *"You can onboard as an individual and start receiving international payments without any hassle"*.
+All four products and both licence-key entitlements exist in **Live Mode** on the `wrong-numbers` Dodo account:
 
-Its licence endpoints are public, need no API key, and were verified working **from a browser** on 2026-09-02, which is why this page needs no server of its own.
+| product | price | product id | entitlement (activations) | checkout |
+|---|---|---|---|---|
+| stockproof Standard | $39 a month | `pdt_0NmijLgj2xavrtNCK6Kst` | `ent_0NmihTDpEjrjAmgU0BpUl` (2) | https://checkout.dodopayments.com/buy/pdt_0NmijLgj2xavrtNCK6Kst?quantity=1 |
+| stockproof Standard, annual | $390 a year | `pdt_0NmijjvKgOb6aqo05nKJo` | same | https://checkout.dodopayments.com/buy/pdt_0NmijjvKgOb6aqo05nKJo?quantity=1 |
+| stockproof Plus | $79 a month | `pdt_0NmikQUVcKrpEPiNOqzIt` | `ent_0NmihY0MOiSBwB5LiiJ47` (2) | https://checkout.dodopayments.com/buy/pdt_0NmikQUVcKrpEPiNOqzIt?quantity=1 |
+| stockproof Plus, annual | $790 a year | `pdt_0NmilBOPh4sl8jtT8ThpE` | same | https://checkout.dodopayments.com/buy/pdt_0NmilBOPh4sl8jtT8ThpE?quantity=1 |
 
-There are two tiers and two billing periods, so **four products** and **two entitlements**. The tier is carried by the key prefix, not by the product, so a monthly and an annual product of the same tier share one entitlement.
+The Licence tab's four Buy buttons point at those links (`BUY_URL`, `BUY_URL_ANNUAL`, `PLUS_BUY_URL`, `PLUS_BUY_URL_ANNUAL` in `site/js/app.js`). The page reads the tier from the product id that Dodo's activate call returns (`site/js/licence.js`, `PRODUCTS`), because Dodo's licence keys carry **no prefix**; an earlier draft of this file assumed one, and that assumption is gone from the code. A key that is valid but was sold for some other product is refused and its slot handed straight back.
 
-### 2a. Two entitlements
-
-In Dodo, **Entitlements** → **+** → **License Key**, twice:
-
-| | Standard | Plus |
-|---|---|---|
-| **Prefix** | `STOCKPROOF-` | `STOCKPROOFPLUS-` |
-| **Activations limit** | `2` (the shop's back-office machine and a laptop) | `2` |
-| **Duration** | blank for a subscription; keys stay valid while it is active and are revoked when it ends | blank |
-| **Activation instructions** | `Paste the key into the Licence tab at arthi-arumugam-git.github.io/stockproof` | same |
-
-The prefixes matter. Validate takes only the key, so the prefix is what stops another Dodo merchant's key unlocking this tool, and it is also how the page tells Standard from Plus: `site/js/licence.js` reads `STOCKPROOFPLUS-` as Plus and `STOCKPROOF-` as Standard. Note that `STOCKPROOFPLUS-` does not start with `STOCKPROOF-`, which is deliberate: a Standard key can never be mistaken for Plus.
-
-### 2b. Four products
-
-| product | price | entitlement |
-|---|---|---|
-| `stockproof Standard` | **$39/month** | Standard |
-| `stockproof Standard, annual` | **$390/year** | Standard |
-| `stockproof Plus` | **$79/month** | Plus |
-| `stockproof Plus, annual` | **$790/year** | Plus |
-
-Annual is the monthly price with two months free, which is the usual shape and is what the README and the Licence tab say.
-
-On the Standard price, read the evidence carefully, because an earlier draft of this file got it wrong. A merchant who describes themselves as a *"tiny business"* wrote: *"We are unable to print labels after receiving products... So we have to pay $35/month for an additional app to do this."* That is money actually being spent, on **labels alone**. stockproof does labels, reorder suggestions, purchase orders and a stock count. Thrive/Shopventory, the nearest full alternative, starts at **$59/month** and has 105 reviews, so merchants do pay it. The *"$9.99"* figure in the research is a labels-only app, and the *"$30-$50 a month"* complaint was about **currency conversion**, not inventory — neither is a ceiling for this. $39 asks about what one merchant already pays for a quarter of the job, and a third less than the obvious alternative.
-
-Plus at $79 is priced above Thrive's entry tier because it carries the thing a merchant asked for by name — receiving against a purchase order, with margin per line — and per-vendor lead times. It is still below Thrive's second tier.
-
-### 2c. Wire the checkout links
-
-Publish, then send Claude the **checkout URLs**. Two constants in `site/js/app.js` take them, one line each:
-
-- `BUY_URL` — the Standard monthly checkout. Until it is set, the button points at the README.
-- `PLUS_BUY_URL` — the Plus monthly checkout. Same fallback.
-
-The annual checkouts can be linked from the same buttons' surroundings once they exist; the page currently shows the annual price as text only.
-
-### Test it once
-
-Buy your own Standard licence, paste the key into the **Licence** tab, and check that Print and the CSV downloads unlock, the Licence tab says *Standard licence active*, and the **Receiving** tab still shows the Plus notice. Then buy a Plus licence and check that Receiving and the per-vendor inputs on the Reorder tab unlock. Click **Remove licence** and confirm everything locks again.
-
----
+**The one thing left is verification.** Dodo's dashboard says *"Complete verification to activate live payments and payouts. Most reviews finish within 72 hours."* Until it is approved, a merchant can reach the checkout page but the payment will not settle and nothing pays out. Go to **Verification** in the dashboard, choose **Individual**, and finish the identity, PAN and bank steps. This needs your documents and your bank account, so it is yours alone.
 
 ## 3. Post where the stranded merchants actually are (30 minutes)
 
