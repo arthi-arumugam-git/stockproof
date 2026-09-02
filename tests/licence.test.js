@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { _internal, activate, forget, looksLikeKey, status, verify } from "../site/js/licence.js";
+import { _internal, activate, forget, looksLikeKey, status, tier, verify } from "../site/js/licence.js";
 
 const jsonRes = (body, statusCode = 200) => ({ status: statusCode, ok: statusCode < 400, json: async () => body });
 
@@ -182,5 +182,28 @@ describe("device name", () => {
     const name = _internal.deviceName();
     expect(name.startsWith("stockproof · ")).toBe(true);
     expect(name.length).toBeLessThan(60);
+  });
+});
+
+describe("tiers", () => {
+  it("reads the tier from the key prefix and accepts a Plus key everywhere a Standard one is accepted", () => {
+    expect(tier("STOCKPROOF-AAAA-BBBB")).toBe("standard");
+    expect(tier("STOCKPROOFPLUS-AAAA-BBBB")).toBe("plus");
+    expect(tier("stockproofplus-aaaa")).toBe("plus");
+    expect(tier("BILLPROOF-AAAA")).toBeNull();
+    expect(tier("")).toBeNull();
+    expect(looksLikeKey("STOCKPROOFPLUS-AAAA-BBBB")).toBe(true);
+  });
+
+  it("reports the tier from status, for a fresh check and for a cached one", async () => {
+    const storage = memStore();
+    await activate("STOCKPROOFPLUS-K", { storage, now: 1000, fetchImpl: routed({ valid: true }, { id: "i" }) });
+    expect(await status({ storage, now: 2000 })).toEqual({ licensed: true, tier: "plus" });
+    const later = await status({ storage, now: 2000 + _internal.RECHECK_MS, fetchImpl: async () => jsonRes({ valid: true }) });
+    expect(later).toEqual({ licensed: true, tier: "plus" });
+    const std = memStore();
+    std.setItem(_internal.STORAGE_KEY, JSON.stringify({ key: "STOCKPROOF-K", checkedAt: 0 }));
+    expect((await status({ storage: std, now: 1 })).tier).toBe("standard");
+    expect((await status({ storage: memStore() })).tier).toBeNull();
   });
 });

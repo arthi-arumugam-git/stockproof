@@ -3,67 +3,74 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>stockproof · reorder, purchase orders and labels for Shopify</title>
-<meta name="description" content="Shopify retired Stocky on 31 August 2026. stockproof gives you reorder suggestions, purchase orders and barcode labels from your CSV exports, entirely in your browser. Nothing is uploaded.">
+<title>stockproof · reorder, purchase orders and labels for Shopify and WooCommerce</title>
+<meta name="description" content="Shopify retired Stocky on 31 August 2026. stockproof gives Shopify and WooCommerce merchants reorder suggestions, purchase orders, barcode labels, a stock count and receiving from their CSV exports, entirely in the browser. Nothing is uploaded.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231b1a17'/%3E%3Cpath d='M8 21h4V11H8zm6 0h4V7h-4zm6 0h4v-6h-4z' fill='%23f5f3ee'/%3E%3C/svg%3E">
 <script>(function(){try{var t=localStorage.getItem("stockproof.theme");if(t)document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
-<link rel="stylesheet" href="css/app.css?v=0.1.8">
+<link rel="stylesheet" href="css/app.css?v=0.2.0">
 </head>
 <body>
 <div class="wrap">
 
 <header class="top">
   <h1>stockproof</h1>
-  <span class="tag">reorder, purchase orders and labels for Shopify</span>
+  <span class="tag">reorder, purchase orders and labels for Shopify and WooCommerce</span>
   <span class="spacer"></span>
   <span class="privacy" id="privacy">nothing leaves this tab</span>
   <button class="link" id="themeBtn" type="button">theme</button>
 </header>
 
 <div class="warnbox noprint" id="stockyNote">
-  Shopify retired <strong>Stocky</strong> on 31 August 2026. This page does the three things merchants said they
-  missed most: suggest what to reorder, print a real purchase order, and print barcode labels. It runs entirely in
-  your browser — your exports are read in this tab and never sent anywhere.
+  Shopify retired <strong>Stocky</strong> on 31 August 2026. This page does the things merchants said they
+  missed most: suggest what to reorder, print a real purchase order, print barcode labels, count stock and check
+  deliveries in. It reads the CSV files your store already exports — Shopify or WooCommerce — and runs entirely in
+  your browser. Nothing is sent anywhere.
 </div>
 
 <section class="panel noprint" id="filesPanel">
   <h2>1 · Load your exports</h2>
   <div class="slots">
     <div class="slot" id="slot-inventory" data-kind="inventory">
-      <h3>Inventory <span class="req">required</span></h3>
-      <p>Products → Inventory → Export. Choose <strong>All states</strong>.</p>
+      <h3>Stock levels <span class="req">required</span></h3>
+      <p class="guide" id="guide-inventory"></p>
       <label class="pick" for="file-inventory">Choose file</label>
       <input type="file" id="file-inventory" accept=".csv,text/csv">
       <div class="state" id="state-inventory"></div>
     </div>
     <div class="slot" id="slot-orders" data-kind="orders">
-      <h3>Orders <span class="req">for suggestions</span></h3>
-      <p>Orders → Export. Pick a recent window, 30 to 90 days works well.</p>
+      <h3>Sales <span class="req">for suggestions</span></h3>
+      <p class="guide" id="guide-orders"></p>
       <label class="pick" for="file-orders">Choose file</label>
       <input type="file" id="file-orders" accept=".csv,text/csv">
       <div class="state" id="state-orders"></div>
     </div>
     <div class="slot" id="slot-products" data-kind="products">
-      <h3>Products <span class="req">for cost and vendor</span></h3>
-      <p>Products → Export. Adds supplier, cost and barcode to each line.</p>
+      <h3>Product details <span class="req">for cost, price and vendor</span></h3>
+      <p class="guide" id="guide-products"></p>
       <label class="pick" for="file-products">Choose file</label>
       <input type="file" id="file-products" accept=".csv,text/csv">
       <div class="state" id="state-products"></div>
     </div>
   </div>
   <div class="rowbar">
-    <button class="btn" type="button" id="sampleBtn">Try it with sample data</button>
-    <span class="note">40 products, two locations, 60 days of orders. Made up, so you can see the whole thing work before exporting anything real.</span>
+    <button class="btn" type="button" id="sampleBtn">Try the Shopify sample</button>
+    <button class="btn" type="button" id="sampleWooBtn">Try the WooCommerce sample</button>
+    <span class="note">40 products, 60 days of sales, made up, so you can see the whole thing work before exporting anything real.</span>
   </div>
-  <p class="howto">Drag files anywhere on this page and each one is recognised by its columns, so the order does not matter.</p>
+  <p class="howto">Drag files anywhere on this page. Each one is recognised by its columns, so the order does not matter and the status line says which platform and which file it read.</p>
+  <div class="note" id="fileNotes" hidden></div>
 </section>
 
 <section class="panel controls noprint" id="settingsPanel" hidden>
   <h2>2 · Settings</h2>
   <div class="settings">
-    <div class="field">
+    <div class="field" id="locationField">
       <label for="location">Location</label>
       <select id="location"></select>
+    </div>
+    <div class="field" id="windowField" hidden>
+      <label for="windowDays">Sales window (days)</label>
+      <input type="number" id="windowDays" min="1" max="3650" placeholder="e.g. 30">
     </div>
     <div class="field">
       <label for="leadTime">Lead time (days)</label>
@@ -90,6 +97,7 @@
   <button role="tab" id="tab-po" aria-selected="false" data-panel="po">Purchase orders</button>
   <button role="tab" id="tab-labels" aria-selected="false" data-panel="labels">Labels</button>
   <button role="tab" id="tab-count" aria-selected="false" data-panel="count">Stock count</button>
+  <button role="tab" id="tab-receiving" aria-selected="false" data-panel="receiving">Receiving <span class="chip plus">Plus</span></button>
   <button role="tab" id="tab-licence" aria-selected="false" data-panel="licence">Licence</button>
 </nav>
 
@@ -97,15 +105,16 @@
 <section id="panel-po" class="tabpanel" hidden></section>
 <section id="panel-labels" class="tabpanel" hidden></section>
 <section id="panel-count" class="tabpanel" hidden></section>
+<section id="panel-receiving" class="tabpanel" hidden></section>
 <section id="panel-licence" class="tabpanel" hidden></section>
 
 <footer class="noprint">
   <span>stockproof · built by <a href="https://github.com/arthi-arumugam-git">Arthi Arumugam</a></span>
   <a href="https://github.com/arthi-arumugam-git/stockproof">source</a>
-  <span>Not affiliated with Shopify.</span>
+  <span>Not affiliated with Shopify or WooCommerce.</span>
 </footer>
 
 </div>
-<script type="module" src="js/app.js?v=0.1.8"></script>
+<script type="module" src="js/app.js?v=0.2.0"></script>
 </body>
 </html>

@@ -25,11 +25,21 @@ const GRACE_MS = 30 * 24 * 60 * 60 * 1000;
  * unrelated key unlocking this tool. Empty means "accept any shape".
  */
 export const KEY_PREFIX = "STOCKPROOF-";
+/** The Plus product is a second Dodo product with its own prefix; the prefix is what carries the tier. */
+export const PLUS_PREFIX = "STOCKPROOFPLUS-";
+
+/** "plus" or "standard" from the key's prefix; null when it is neither. */
+export function tier(key) {
+  const k = String(key ?? "").trim().toUpperCase();
+  if (PLUS_PREFIX && k.startsWith(PLUS_PREFIX.toUpperCase())) return "plus";
+  if (KEY_PREFIX && k.startsWith(KEY_PREFIX.toUpperCase())) return "standard";
+  return null;
+}
 
 export function looksLikeKey(key) {
   const k = String(key ?? "").trim();
   if (k.length < 8) return false;
-  return KEY_PREFIX ? k.toUpperCase().startsWith(KEY_PREFIX.toUpperCase()) : true;
+  return KEY_PREFIX ? tier(k) !== null : true;
 }
 
 function readStore(storage) {
@@ -100,7 +110,7 @@ export async function activate(key, opts = {}) {
   const storage = opts.storage ?? globalThis.localStorage;
   const trimmed = String(key ?? "").trim();
   if (!trimmed) return { ok: false, reason: "enter a licence key" };
-  if (!looksLikeKey(trimmed)) return { ok: false, reason: `that does not look like a stockproof licence key (they start with ${KEY_PREFIX})` };
+  if (!looksLikeKey(trimmed)) return { ok: false, reason: `that does not look like a stockproof licence key (they start with ${KEY_PREFIX} or ${PLUS_PREFIX})` };
   const v = await verify(trimmed, opts);
   if (!v.ok) return v;
   // an activation-limit refusal does not invalidate the licence; the key still validates, this
@@ -115,16 +125,17 @@ export async function status(opts = {}) {
   const storage = opts.storage ?? globalThis.localStorage;
   const now = opts.now ?? Date.now();
   const saved = readStore(storage);
-  if (!saved || !saved.key) return { licensed: false, reason: "no licence key" };
+  if (!saved || !saved.key) return { licensed: false, tier: null, reason: "no licence key" };
+  const t = tier(saved.key);
   const age = now - (saved.checkedAt ?? 0);
-  if (age < RECHECK_MS) return { licensed: true };
+  if (age < RECHECK_MS) return { licensed: true, tier: t };
   const v = await verify(saved.key, opts);
   if (v.ok) {
     writeStore(storage, { ...saved, checkedAt: now });
-    return { licensed: true };
+    return { licensed: true, tier: t };
   }
-  if (v.network && age < GRACE_MS) return { licensed: true, stale: true, reason: "offline; within grace" };
-  return { licensed: false, reason: v.reason };
+  if (v.network && age < GRACE_MS) return { licensed: true, tier: t, stale: true, reason: "offline; within grace" };
+  return { licensed: false, tier: null, reason: v.reason };
 }
 
 export function forget(opts = {}) {

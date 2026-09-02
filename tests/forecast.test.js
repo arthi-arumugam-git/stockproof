@@ -191,3 +191,26 @@ describe("variance matches scanned codes through aliases", () => {
     expect(v.rows[0].delta).toBe(2);
   });
 });
+
+describe("window not set", () => {
+  it("distinguishes a sales file with no known window from no sales file at all", () => {
+    const r = suggest({
+      inventory: [inv()],
+      salesBySku: new Map([["MUG-L", { units: 60 }]]),
+      windowDays: null,
+      productsBySku,
+      productsByHandle: new Map(),
+    });
+    expect(r.suggestions).toHaveLength(0);
+    expect(r.noSales[0].reason).toMatch(/window is not set/);
+    expect(r.joinFailed).toBe(false);
+  });
+
+  it("carries the unit price through for the receiving margin, without inventing one", () => {
+    const priced = new Map([["MUG-L", { sku: "MUG-L", vendor: "Acme", cost: 4, price: 10 }]]);
+    const r = suggest({ inventory: [inv()], salesBySku: new Map([["MUG-L", { units: 60 }]]), windowDays: 30, productsBySku: priced, productsByHandle: new Map() });
+    expect(r.suggestions[0].unitPrice).toBe(10);
+    const unpriced = suggest({ inventory: [inv()], salesBySku: new Map([["MUG-L", { units: 60 }]]), windowDays: 30, productsBySku, productsByHandle: new Map() });
+    expect(unpriced.suggestions[0].unitPrice).toBeNull();
+  });
+});

@@ -21,12 +21,21 @@ export const DEFAULTS = Object.freeze({
  * @param {Map}   args.productsByHandle  vendor and cost lookup
  * @param {Map}   args.productsBySku
  * @param {object} args.settings  leadTimeDays, safetyDays, targetCoverDays
+ * @param {Map|object} [args.vendorSettings]  per-vendor overrides of any of those three, keyed by vendor
  */
-export function suggest({ inventory, salesBySku, windowDays, productsByHandle, productsBySku, productsByTitle, settings }) {
+export function suggest({ inventory, salesBySku, windowDays, productsByHandle, productsBySku, productsByTitle, settings, vendorSettings }) {
   const s = { ...DEFAULTS, ...(settings ?? {}) };
   const suggestions = [];
   const noSales = [];
   const noData = [];
+  // a vendor's own lead time and cover, when the merchant has set them, win over the globals
+  const forVendor = (vendor) => {
+    const o = !vendorSettings ? null : vendorSettings instanceof Map ? vendorSettings.get(vendor) : vendorSettings[vendor];
+    if (!o) return s;
+    const out = { ...s };
+    for (const k of ["leadTimeDays", "safetyDays", "targetCoverDays"]) if (Number.isFinite(o[k]) && o[k] >= 0) out[k] = o[k];
+    return out;
+  };
 
   for (const row of inventory) {
     // Shopify's inventory export carries no SKU column, so the join to orders (which are keyed
@@ -52,7 +61,8 @@ export function suggest({ inventory, salesBySku, windowDays, productsByHandle, p
       title: row.title || product?.title || "",
       vendor: product?.vendor || "",
       barcode: product?.barcode || "",
-      unitCost: product?.cost ?? null,
+      unitCost: product?.cost ?? row.cost ?? null,
+      unitPrice: product?.price ?? row.price ?? null,
       available: row.available,
       incoming: row.incoming ?? 0,
       committed: row.committed ?? 0,
@@ -66,15 +76,18 @@ export function suggest({ inventory, salesBySku, windowDays, productsByHandle, p
       continue;
     }
     if (!windowDays || !sale || sale.units <= 0) {
-      noSales.push({ ...base, unitsSold: sale?.units ?? 0, reason: windowDays ? "no sales in the window" : "no orders export loaded" });
+      // a sales file whose window is not known yet is a different situation from no sales file
+      const reason = windowDays ? "no sales in the window" : salesBySku?.size ? "sales loaded, but the window is not set" : "no orders export loaded";
+      noSales.push({ ...base, unitsSold: sale?.units ?? 0, reason });
       continue;
     }
 
+    const rs = forVendor(base.vendor);
     const unitsSold = sale.units;
     const velocity = unitsSold / windowDays;
     const daysOfCover = velocity > 0 ? base.available / velocity : null;
-    const reorderPoint = velocity * (s.leadTimeDays + s.safetyDays);
-    const target = velocity * (s.leadTimeDays + s.targetCoverDays);
+    const reorderPoint = velocity * (rs.leadTimeDays + rs.safetyDays);
+    const target = velocity * (rs.leadTimeDays + rs.targetCoverDays);
     const suggestedQty = Math.max(0, Math.ceil(target - base.available - base.incoming));
 
     suggestions.push({
@@ -87,7 +100,8 @@ export function suggest({ inventory, salesBySku, windowDays, productsByHandle, p
       suggestedQty,
       belowReorderPoint: base.available + base.incoming < reorderPoint,
       extendedCost: base.unitCost !== null ? +(base.unitCost * suggestedQty).toFixed(2) : null,
-      settings: s,
+      settings: rs,
+      vendorOverride: rs !== s,
     });
   }
 

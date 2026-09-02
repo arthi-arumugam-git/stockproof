@@ -152,3 +152,19 @@ footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line);
   .label { border: 0; break-inside: avoid; page-break-inside: avoid; }
   .tablewrap { overflow: visible; }
 }
+
+/* platforms and tiers */
+.slot .guide { margin: 6px 0 10px; color: var(--ink-2); font-size: 13px; }
+.slot .guide b { font-weight: 600; }
+.chip.plus { background: var(--accent); color: var(--bg); letter-spacing: .04em; }
+nav.tabs button .chip { margin-left: 6px; font-size: 10px; padding: 0 5px; vertical-align: 1px; }
+.tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 12px 0; }
+.tier { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.tier h3 { font-size: 15px; margin-bottom: 2px; }
+.tier .price { color: var(--dim); font-size: 13px; font-family: var(--mono); margin-bottom: 8px; }
+.tier ul { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--ink-2); }
+.tier ul li { margin: 3px 0; }
+.tier.current { border-color: var(--good); }
+table.data td.over { color: var(--warn); font-weight: 600; }
+table.vendors td input { width: 84px; font: inherit; font-size: 13px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 5px; background: var(--panel); color: var(--ink); }
+table.vendors td input:disabled { opacity: .5; }
