@@ -27,10 +27,10 @@ const GRACE_MS = 30 * 24 * 60 * 60 * 1000;
  * shape is trusted.
  */
 export const PRODUCTS = Object.freeze({
-  pdt_0NmijLgj2xavrtNCK6Kst: "standard", // stockproof Standard, $39 a month
-  pdt_0NmijjvKgOb6aqo05nKJo: "standard", // stockproof Standard, $390 a year
-  pdt_0NmikQUVcKrpEPiNOqzIt: "plus", // stockproof Plus, $79 a month
-  pdt_0NmilBOPh4sl8jtT8ThpE: "plus", // stockproof Plus, $790 a year
+  pdt_0NmijLgj2xavrtNCK6Kst: "standard", // stockproof Standard, $19 a month
+  pdt_0NmijjvKgOb6aqo05nKJo: "standard", // stockproof Standard, $190 a year
+  pdt_0NmikQUVcKrpEPiNOqzIt: "plus", // stockproof Plus, $39 a month
+  pdt_0NmilBOPh4sl8jtT8ThpE: "plus", // stockproof Plus, $390 a year
 });
 
 /** "plus" or "standard" for one of this page's products; null for anything else. */

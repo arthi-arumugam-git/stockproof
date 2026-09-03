@@ -38,7 +38,7 @@
  *     product with no cost.
  */
 
-import { count, findHeader, makeReader } from "./columns.js?v=0.2.2";
+import { count, findHeader, makeReader } from "./columns.js?v=0.2.3";
 
 export const id = "woocommerce";
 export const name = "WooCommerce";

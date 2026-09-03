@@ -46,7 +46,7 @@ WooCommerce specifics, all from woocommerce.com's documentation:
 
 **Licensed**
 
-| | Standard · $39/month or $390/year | Plus · $79/month or $790/year |
+| | Standard · $19/month or $190/year | Plus · $39/month or $390/year |
 |---|---|---|
 | Purchase orders: one printable page per vendor with cost, quantity, extended cost and a total, and a CSV | ✓ | ✓ |
 | Barcode labels: Code 128 SVG label sheets, 50 × 25 mm, from a purchase order or a selection | ✓ | ✓ |

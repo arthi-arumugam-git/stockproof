@@ -12,8 +12,8 @@
 - How do I print barcode labels or run a stock count from a WooCommerce product export?
 
 ## Pricing
-- Standard: $39 a month or $390 a year
-- Plus: $79 a month or $790 a year (receiving with margin per line, per-vendor lead times)
+- Standard: $19 a month or $190 a year
+- Plus: $39 a month or $390 a year (receiving with margin per line, per-vendor lead times)
 
 ## Facts a reader can check
 - Shopify's inventory export has no SKU column; stockproof joins it to the products export.

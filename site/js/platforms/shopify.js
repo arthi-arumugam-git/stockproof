@@ -6,8 +6,8 @@
  * of the three slots a recognised file fills and how a count is written back.
  */
 
-import { detect as detectKind, readInventory, readOrders, readProducts } from "../shopify.js?v=0.2.2";
-import { writebackRecords } from "../forecast.js?v=0.2.2";
+import { detect as detectKind, readInventory, readOrders, readProducts } from "../shopify.js?v=0.2.3";
+import { writebackRecords } from "../forecast.js?v=0.2.3";
 
 export const id = "shopify";
 export const name = "Shopify";

@@ -25,10 +25,10 @@ All four products and both licence-key entitlements exist in **Live Mode** on th
 
 | product | price | product id | entitlement (activations) | checkout |
 |---|---|---|---|---|
-| stockproof Standard | $39 a month | `pdt_0NmijLgj2xavrtNCK6Kst` | `ent_0NmihTDpEjrjAmgU0BpUl` (2) | https://checkout.dodopayments.com/buy/pdt_0NmijLgj2xavrtNCK6Kst?quantity=1 |
-| stockproof Standard, annual | $390 a year | `pdt_0NmijjvKgOb6aqo05nKJo` | same | https://checkout.dodopayments.com/buy/pdt_0NmijjvKgOb6aqo05nKJo?quantity=1 |
-| stockproof Plus | $79 a month | `pdt_0NmikQUVcKrpEPiNOqzIt` | `ent_0NmihY0MOiSBwB5LiiJ47` (2) | https://checkout.dodopayments.com/buy/pdt_0NmikQUVcKrpEPiNOqzIt?quantity=1 |
-| stockproof Plus, annual | $790 a year | `pdt_0NmilBOPh4sl8jtT8ThpE` | same | https://checkout.dodopayments.com/buy/pdt_0NmilBOPh4sl8jtT8ThpE?quantity=1 |
+| stockproof Standard | $19 a month | `pdt_0NmijLgj2xavrtNCK6Kst` | `ent_0NmihTDpEjrjAmgU0BpUl` (2) | https://checkout.dodopayments.com/buy/pdt_0NmijLgj2xavrtNCK6Kst?quantity=1 |
+| stockproof Standard, annual | $190 a year | `pdt_0NmijjvKgOb6aqo05nKJo` | same | https://checkout.dodopayments.com/buy/pdt_0NmijjvKgOb6aqo05nKJo?quantity=1 |
+| stockproof Plus | $39 a month | `pdt_0NmikQUVcKrpEPiNOqzIt` | `ent_0NmihY0MOiSBwB5LiiJ47` (2) | https://checkout.dodopayments.com/buy/pdt_0NmikQUVcKrpEPiNOqzIt?quantity=1 |
+| stockproof Plus, annual | $390 a year | `pdt_0NmilBOPh4sl8jtT8ThpE` | same | https://checkout.dodopayments.com/buy/pdt_0NmilBOPh4sl8jtT8ThpE?quantity=1 |
 
 The Licence tab's four Buy buttons point at those links (`BUY_URL`, `BUY_URL_ANNUAL`, `PLUS_BUY_URL`, `PLUS_BUY_URL_ANNUAL` in `site/js/app.js`). The page reads the tier from the product id that Dodo's activate call returns (`site/js/licence.js`, `PRODUCTS`), because Dodo's licence keys carry **no prefix**; an earlier draft of this file assumed one, and that assumption is gone from the code. A key that is valid but was sold for some other product is refused and its slot handed straight back.
 

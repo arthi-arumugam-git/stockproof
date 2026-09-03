@@ -7,14 +7,14 @@
  * access to someone's store.
  */
 
-import { parseCsv, toCsv } from "./csv.js?v=0.2.2";
-import { aggregateLocations, attachProducts } from "./shopify.js?v=0.2.2";
-import { DEFAULTS, groupByVendor, suggest, variance } from "./forecast.js?v=0.2.2";
-import { toSvg, encodable } from "./barcode.js?v=0.2.2";
-import * as licence from "./licence.js?v=0.2.2";
-import { PLATFORMS, byId, detectFile } from "./platforms/index.js?v=0.2.2";
-import { receive, receivingVariance } from "./receiving.js?v=0.2.2";
-import * as vendors from "./vendors.js?v=0.2.2";
+import { parseCsv, toCsv } from "./csv.js?v=0.2.3";
+import { aggregateLocations, attachProducts } from "./shopify.js?v=0.2.3";
+import { DEFAULTS, groupByVendor, suggest, variance } from "./forecast.js?v=0.2.3";
+import { toSvg, encodable } from "./barcode.js?v=0.2.3";
+import * as licence from "./licence.js?v=0.2.3";
+import { PLATFORMS, byId, detectFile } from "./platforms/index.js?v=0.2.3";
+import { receive, receivingVariance } from "./receiving.js?v=0.2.3";
+import * as vendors from "./vendors.js?v=0.2.3";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, attrs = {}, children = []) => {
@@ -845,7 +845,7 @@ function renderLicence(host) {
   const tiers = el("div", { class: "tiers" }, [
     el("div", { class: "tier" + (state.licensed && state.tier === "standard" ? " current" : "") }, [
       el("h3", { text: "Standard" }),
-      el("div", { class: "price", text: "$39/month · $390/year" }),
+      el("div", { class: "price", text: "$19/month · $190/year" }),
       el("ul", {}, [
         el("li", { text: "Print and export purchase orders, one per vendor, with costs and totals" }),
         el("li", { text: "Print Code 128 barcode labels from an order or a selection" }),
@@ -854,7 +854,7 @@ function renderLicence(host) {
     ]),
     el("div", { class: "tier" + (state.licensed && state.tier === "plus" ? " current" : "") }, [
       el("h3", { text: "Plus" }),
-      el("div", { class: "price", text: "$79/month · $790/year" }),
+      el("div", { class: "price", text: "$39/month · $390/year" }),
       el("ul", {}, [
         el("li", { text: "Everything in Standard" }),
         el("li", { text: "Receiving: check deliveries in against a purchase order, with cost, price and margin per line, and write the arrivals back" }),
@@ -892,10 +892,10 @@ function renderLicence(host) {
                 else msg.textContent = r.reason;
               },
             }),
-            el("a", { class: "btn", href: BUY_URL, target: "_blank", rel: "noopener", text: "Buy Standard, $39 a month" }),
-            el("a", { class: "btn", href: BUY_URL_ANNUAL, target: "_blank", rel: "noopener", text: "Standard, $390 a year" }),
-            el("a", { class: "btn", href: PLUS_BUY_URL, target: "_blank", rel: "noopener", text: "Buy Plus, $79 a month" }),
-            el("a", { class: "btn", href: PLUS_BUY_URL_ANNUAL, target: "_blank", rel: "noopener", text: "Plus, $790 a year" }),
+            el("a", { class: "btn", href: BUY_URL, target: "_blank", rel: "noopener", text: "Buy Standard, $19 a month" }),
+            el("a", { class: "btn", href: BUY_URL_ANNUAL, target: "_blank", rel: "noopener", text: "Standard, $190 a year" }),
+            el("a", { class: "btn", href: PLUS_BUY_URL, target: "_blank", rel: "noopener", text: "Buy Plus, $39 a month" }),
+            el("a", { class: "btn", href: PLUS_BUY_URL_ANNUAL, target: "_blank", rel: "noopener", text: "Plus, $390 a year" }),
           ]),
       msg,
       el("p", { class: "note", text: "The key is checked once a day. If you are offline the last check stands for 30 days, so a count in a stockroom with no signal is never blocked. One licence covers a set number of devices; remove it here to free a slot before moving to another machine. Annual plans are the monthly price with two months free." }),
