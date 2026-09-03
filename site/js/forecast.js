@@ -113,7 +113,10 @@ export function suggest({ inventory, salesBySku, windowDays, productsByHandle, p
     return b.suggestedQty - a.suggestedQty;
   });
   // a join that matched nothing is a setup problem, not a business fact, and must be visible
-  const joinFailed = Boolean(windowDays) && suggestions.length === 0 && noSales.length > 0 && salesBySku && salesBySku.size > 0;
+  const unitsInWindow = salesBySku
+    ? Array.from(salesBySku.values()).reduce((total, entry) => total + Number(entry?.units || 0), 0)
+    : 0;
+  const joinFailed = Boolean(windowDays) && suggestions.length === 0 && noSales.length > 0 && unitsInWindow > 0;
   return { suggestions, noSales, noData, settings: s, joinFailed };
 }
 

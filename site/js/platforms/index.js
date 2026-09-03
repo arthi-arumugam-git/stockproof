@@ -7,8 +7,8 @@
  * read(parsed) -> { inventory?, orders?, products?, windowDays?, notes }, and writeback.
  */
 
-import * as shopify from "./shopify.js?v=0.2.3";
-import * as woocommerce from "./woocommerce.js?v=0.2.3";
+import * as shopify from "./shopify.js?v=0.2.4";
+import * as woocommerce from "./woocommerce.js?v=0.2.4";
 
 export const PLATFORMS = [shopify, woocommerce];
 

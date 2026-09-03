@@ -7,7 +7,7 @@
  * reports what it could not find rather than silently reading undefined.
  */
 
-import { num } from "../csv.js?v=0.2.3";
+import { num } from "../csv.js?v=0.2.4";
 
 /** First header that matches any candidate, compared case-insensitively and ignoring punctuation. */
 export function findHeader(headers, candidates) {

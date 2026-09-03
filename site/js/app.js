@@ -7,14 +7,14 @@
  * access to someone's store.
  */
 
-import { parseCsv, toCsv } from "./csv.js?v=0.2.3";
-import { aggregateLocations, attachProducts } from "./shopify.js?v=0.2.3";
-import { DEFAULTS, groupByVendor, suggest, variance } from "./forecast.js?v=0.2.3";
-import { toSvg, encodable } from "./barcode.js?v=0.2.3";
-import * as licence from "./licence.js?v=0.2.3";
-import { PLATFORMS, byId, detectFile } from "./platforms/index.js?v=0.2.3";
-import { receive, receivingVariance } from "./receiving.js?v=0.2.3";
-import * as vendors from "./vendors.js?v=0.2.3";
+import { parseCsv, toCsv } from "./csv.js?v=0.2.4";
+import { aggregateLocations, attachProducts } from "./shopify.js?v=0.2.4";
+import { DEFAULTS, groupByVendor, suggest, variance } from "./forecast.js?v=0.2.4";
+import { toSvg, encodable } from "./barcode.js?v=0.2.4";
+import * as licence from "./licence.js?v=0.2.4";
+import { PLATFORMS, byId, detectFile } from "./platforms/index.js?v=0.2.4";
+import { receive, receivingVariance } from "./receiving.js?v=0.2.4";
+import * as vendors from "./vendors.js?v=0.2.4";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, attrs = {}, children = []) => {
